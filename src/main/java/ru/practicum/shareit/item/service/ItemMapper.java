@@ -1,20 +1,33 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.Builder;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemDto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemMapper {
     public ItemDto toDto(Item item) {
-        return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable());
+        return ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .build();
     }
 
     public Item toModel(ItemDto itemDto, Long ownerId) {
-        return new Item(null, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), ownerId);
+        return Item.builder()
+                .id(null)
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .owner(ownerId)
+                .build();
     }
 
     public List<ItemDto> mapItemListToItemDtoList(List<Item> userItems) {
@@ -22,11 +35,8 @@ public class ItemMapper {
             return new ArrayList<>();
         }
 
-        List<ItemDto> result = new ArrayList<>();
-        for (Item item : userItems) {
-            ItemDto itemDto = toDto(item);
-            result.add(itemDto);
-        }
-        return result;
+        return userItems.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }
