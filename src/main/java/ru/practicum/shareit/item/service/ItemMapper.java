@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.Builder;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemDto;
