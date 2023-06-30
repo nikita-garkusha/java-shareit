@@ -1,0 +1,107 @@
+package ru.practicum.shareit.item.controller;
+
+import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.ItemDto;
+import ru.practicum.shareit.item.service.ItemMapper;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.validation_markers.Create;
+import ru.practicum.shareit.validation_markers.Update;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping(path = "/items")
+public class ItemController {
+
+    public static final int MIN_ID_VALUE = 1;
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String NULL_ITEM_ID_MESSAGE = "itemID is null";
+    public static final String NULL_USER_ID_MESSAGE = "userID is null";
+
+    private final ItemService itemService;
+    private final ItemMapper mapper;
+
+    @PostMapping
+    public ItemDto createItem(@Validated({Create.class})
+                              @RequestBody ItemDto itemDto,
+                              @NotNull(message = (NULL_ITEM_ID_MESSAGE))
+                              @Min(MIN_ID_VALUE)
+                              @RequestHeader(USER_ID_HEADER) Long userId) {
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.info("Received request to update item: {}", itemDto.getName());
+        Item item = mapper.toModel(itemDto, userId);
+        return mapper.toDto(itemService.createItem(item));
+    }
+
+    @PatchMapping("/{itemId}")
+    public ItemDto updateItem(@Validated({Update.class})
+                              @RequestBody ItemDto itemDto,
+                              @NotNull(message = NULL_ITEM_ID_MESSAGE)
+                              @Min(MIN_ID_VALUE)
+                              @PathVariable Long itemId,
+                              @NotNull(message = NULL_USER_ID_MESSAGE)
+                              @Min(MIN_ID_VALUE)
+                              @RequestHeader(USER_ID_HEADER) Long userId) {
+
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.info("Received request to update item: {}", itemDto.getName());
+
+        Item item = mapper.toModel(itemDto, userId);
+        item.setId(itemId);
+
+        Item updatedItem = itemService.updateItem(item);
+        logger.info("Updated item: {}", updatedItem.getName());
+
+        return mapper.toDto(updatedItem);
+    }
+
+
+    @GetMapping("/{itemId}")
+    public ItemDto findItemById(@NotNull(message = NULL_ITEM_ID_MESSAGE)
+                                @Min(MIN_ID_VALUE)
+                                @PathVariable Long itemId) {
+
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.info("Received request to find item with id: {}", itemId);
+
+        Item foundItem = itemService.findItemById(itemId);
+        logger.info("Found item: {}", foundItem);
+
+        return mapper.toDto(foundItem);
+    }
+
+    @GetMapping
+    public List<ItemDto> findAllItems(@NotNull(message = NULL_USER_ID_MESSAGE)
+                                      @Min(MIN_ID_VALUE)
+                                      @RequestHeader(USER_ID_HEADER) Long userId) {
+
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.info("Received request to find all items for user id: {}", userId);
+
+        List<Item> userItems = itemService.findAllItems(userId);
+        logger.info("Found items: {}", userItems);
+
+        return mapper.mapItemListToItemDtoList(userItems);
+    }
+
+    @GetMapping("/search")
+    public List<ItemDto> findItemsByRequest(@RequestParam String text) {
+
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.info("Received search request with text: {}", text);
+
+        List<Item> foundItems = itemService.findItemsByRequest(text);
+        logger.info("Found items for search text {}: {}", text, foundItems);
+
+        return mapper.mapItemListToItemDtoList(foundItems);
+    }
+}
