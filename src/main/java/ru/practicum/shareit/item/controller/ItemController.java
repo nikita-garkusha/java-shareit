@@ -44,7 +44,7 @@ public class ItemController {
 
     @GetMapping
     public List<ItemFullDto> getByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("Получен GET-запрос к эндпоинту: '/items' на получение вещи с ID={}", userId);
+        log.info("Получен GET-запрос к эндпоинту: '/items' на получение вещи юзера с ID={}", userId);
         return itemService.getByUserId(userId);
     }
 
