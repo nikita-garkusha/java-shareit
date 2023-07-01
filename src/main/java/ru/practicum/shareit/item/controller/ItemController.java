@@ -1,107 +1,65 @@
 package ru.practicum.shareit.item.controller;
 
-import lombok.AllArgsConstructor;
-import org.springframework.validation.annotation.Validated;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
-import ru.practicum.shareit.item.service.ItemMapper;
+import ru.practicum.shareit.comment.dto.CommentFullDto;
+import ru.practicum.shareit.comment.dto.CommentInputDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.validation_markers.Create;
-import ru.practicum.shareit.validation_markers.Update;
+import ru.practicum.shareit.item.dto.ItemFullDto;
+import ru.practicum.shareit.item.dto.ItemInputDto;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 @RestController
-@AllArgsConstructor
-@RequestMapping(path = "/items")
+@RequestMapping("/items")
+@RequiredArgsConstructor
 public class ItemController {
 
-    public static final int MIN_ID_VALUE = 1;
-    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
-    public static final String NULL_ITEM_ID_MESSAGE = "itemID is null";
-    public static final String NULL_USER_ID_MESSAGE = "userID is null";
-
     private final ItemService itemService;
-    private final ItemMapper mapper;
 
     @PostMapping
-    public ItemDto createItem(@Validated({Create.class})
-                              @RequestBody ItemDto itemDto,
-                              @NotNull(message = (NULL_ITEM_ID_MESSAGE))
-                              @Min(MIN_ID_VALUE)
-                              @RequestHeader(USER_ID_HEADER) Long userId) {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info("Received request to update item: {}", itemDto.getName());
-        Item item = mapper.toModel(itemDto, userId);
-        return mapper.toDto(itemService.createItem(item));
+    public ItemFullDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
+                              @Valid @RequestBody ItemInputDto itemInputDto) {
+        log.info("Получен POST-запрос к эндпоинту: '/items' на добавление вещи владельцем с ID={}", userId);
+        return itemService.create(userId, itemInputDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@Validated({Update.class})
-                              @RequestBody ItemDto itemDto,
-                              @NotNull(message = NULL_ITEM_ID_MESSAGE)
-                              @Min(MIN_ID_VALUE)
-                              @PathVariable Long itemId,
-                              @NotNull(message = NULL_USER_ID_MESSAGE)
-                              @Min(MIN_ID_VALUE)
-                              @RequestHeader(USER_ID_HEADER) Long userId) {
-
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info("Received request to update item: {}", itemDto.getName());
-
-        Item item = mapper.toModel(itemDto, userId);
-        item.setId(itemId);
-
-        Item updatedItem = itemService.updateItem(item);
-        logger.info("Updated item: {}", updatedItem.getName());
-
-        return mapper.toDto(updatedItem);
+    public ItemFullDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
+                          @RequestBody ItemInputDto itemInputDto,
+                          @PathVariable Long itemId) {
+        log.info("Получен PATCH-запрос к эндпоинту: '/items' на обновление вещи с ID={}", itemId);
+        return itemService.update(userId, itemId, itemInputDto);
     }
 
-
     @GetMapping("/{itemId}")
-    public ItemDto findItemById(@NotNull(message = NULL_ITEM_ID_MESSAGE)
-                                @Min(MIN_ID_VALUE)
-                                @PathVariable Long itemId) {
-
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info("Received request to find item with id: {}", itemId);
-
-        Item foundItem = itemService.findItemById(itemId);
-        logger.info("Found item: {}", foundItem);
-
-        return mapper.toDto(foundItem);
+    public ItemFullDto get(@RequestHeader("X-Sharer-User-Id") Long userId,
+                              @PathVariable Long itemId) {
+        log.info("Получен GET-запрос к эндпоинту: '/items' на получение вещи с ID={}", userId);
+        return itemService.getById(userId, itemId);
     }
 
     @GetMapping
-    public List<ItemDto> findAllItems(@NotNull(message = NULL_USER_ID_MESSAGE)
-                                      @Min(MIN_ID_VALUE)
-                                      @RequestHeader(USER_ID_HEADER) Long userId) {
-
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info("Received request to find all items for user id: {}", userId);
-
-        List<Item> userItems = itemService.findAllItems(userId);
-        logger.info("Found items: {}", userItems);
-
-        return mapper.mapItemListToItemDtoList(userItems);
+    public List<ItemFullDto> getByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Получен GET-запрос к эндпоинту: '/items' на получение вещи юзера с ID={}", userId);
+        return itemService.getByUserId(userId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> findItemsByRequest(@RequestParam String text) {
+    public List<ItemFullDto> search(@RequestParam String text) {
+        log.info("Получен GET-запрос к эндпоинту: '/items/search' на поиск вещи с текстом={}", text);
+        return itemService.search(text);
+    }
 
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info("Received search request with text: {}", text);
-
-        List<Item> foundItems = itemService.findItemsByRequest(text);
-        logger.info("Found items for search text {}: {}", text, foundItems);
-
-        return mapper.mapItemListToItemDtoList(foundItems);
+    @PostMapping("/{itemId}/comment")
+    public CommentFullDto addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                     @PathVariable Long itemId,
+                                     @Valid @RequestBody CommentInputDto commentInputDto) {
+        log.info("Получен POST-запрос к эндпоинту: '/items/comment' на" +
+                " добавление отзыва пользователем с ID={}", userId);
+        return itemService.addComment(userId, itemId, commentInputDto);
     }
 }
