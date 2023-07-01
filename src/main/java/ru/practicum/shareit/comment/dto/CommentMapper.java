@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 public class CommentMapper {
 
-    public static CommentFullDto mapToFullDto(Comment comment) {
-        return new CommentFullDto(comment.getId(),
+    public static CommentDto mapToDto(Comment comment) {
+        return new CommentDto(comment.getId(),
                 comment.getText(),
                 comment.getAuthor().getName(),
                 comment.getCreated());
