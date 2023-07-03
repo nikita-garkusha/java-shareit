@@ -23,19 +23,18 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handle(final NullPointerException e) {
-        return new ErrorResponse(
-                e.getMessage()
-        );
-    }
-
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handle(final ValidationException e) {
         return new ErrorResponse(
                 e.getCause().getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(final NullPointerException e) {
+        return new ErrorResponse(
+                e.getMessage()
         );
     }
 
@@ -48,8 +47,16 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handle(final IllegalArgumentException e) {
+        return new ErrorResponse(
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(final IllegalAccessException e) {
         return new ErrorResponse(
                 e.getMessage()
         );

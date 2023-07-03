@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-
 @StartEndDate
 public class BookingInputDto {
 

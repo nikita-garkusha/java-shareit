@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
-import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.dto.UserMapper;
 
 public class ItemMapper {
@@ -10,6 +10,9 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.isAvailable(),
+                item.getItemRequest() != null
+                        ? item.getItemRequest().getId()
+                        : null,
                 UserMapper.mapToShortDto(item.getOwner()));
     }
 
@@ -17,11 +20,17 @@ public class ItemMapper {
         return new ItemShortDto(item.getId(),
                 item.getName(),
                 item.getDescription(),
-                item.isAvailable());
+                item.isAvailable(),
+                item.getItemRequest() != null
+                        ? item.getItemRequest().getId()
+                        : null);
     }
 
 
     public static Item mapToItem(ItemInputDto itemInputDto, Item item) {
+        if (itemInputDto.getId() != null) {
+            item.setId(itemInputDto.getId());
+        }
 
         if (itemInputDto.getName() != null) {
             item.setName(itemInputDto.getName());
